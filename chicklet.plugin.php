@@ -12,6 +12,7 @@ class Chicklet extends Plugin
 
 		$this->allblocks = array(
 			'activity_sparkline' => _t( 'Activity Sparkline' ),
+			'statistics' => _t( 'Statistics' )
 		);
 
 		foreach ( array_keys( $this->allblocks ) as $blockname ) {
@@ -62,12 +63,48 @@ class Chicklet extends Plugin
 		}
 	}
 	
-	function action_add_template_vars( $theme )
+	public static function get_stat( $type, $month = NULL )
 	{
-		$count = $this->fetch();
-		$theme->subscribers = $count;
+		$str= 'chicklet_stat_' . $type;
+		if($month != NULL) {
+			$str.= '_' . $month;
+		}
+			
+		if(Cache::has($str)) {
+			return Cache::get($str);
+		}
+				
+		switch($type) {
+			case 'entries':
+			case 'posts':
+				$params= array('content_type' => array( Post::type('entry'), Post::type('link')), 'nolimit' => TRUE);
+				$stat= count(Posts::get($params));
+				break;
+			case 'subscribers':
+				$stat = self::fetch();
+				
+				break;
+			case 'comments':
+				$stat= Comments::count_total(Comment::STATUS_APPROVED);
+				break;
+			case 'tags':
+				$stat= count(Tags::vocabulary()->get_tree());
+				break;
+			default:
+				$stat= 0;
+				break;
+		}
+		
+		Cache::set($str, $stat);
+		return $stat;
 	}
 	
+	// function action_add_template_vars( $theme )
+	// {
+	// 	// $count = $this->fetch();
+	// 	// $theme->subscribers = $count;
+	// }
+	// 
 	static public function fetch() {
 		if(Cache::get('chickler_subscribercount') == NULL) {
 			$count= 0;
@@ -75,7 +112,7 @@ class Chicklet extends Plugin
 			foreach(Options::get('chicklet__feedname') as $feed) {
 				$url = "https://feedburner.google.com/api/awareness/1.0/GetFeedData?uri=" . $feed ;
 				$remote = RemoteRequest::get_contents($url);
-
+	
 				@$xml = simplexml_load_string($remote);
 				
 				if($xml == false) {
@@ -96,34 +133,91 @@ class Chicklet extends Plugin
 	/**
 	 * Activity Sparkline
 	 *
+	 * Handle activity sparkline block configuration
+	 *
+	 */
+	public function action_block_form_activity_sparkline( $form, $block )
+	{
+		// $form is already assigned to a FormUI instance
+		$form->append( 'text', 'sparkline_days', $block, _t( 'Days' ) );
+		// No need to append a submit button as there is always a default form
+		// No need to return values from an action hook
+	}
+	
+	/**
+	 * Activity Sparkline
+	 *
 	 * Handle activity sparkline block output
 	 *
 	 * @param Block $block The block instance to be configured
 	 * @param Theme $theme The active theme
 	 */
-	public function action_block_content_recent_comments( $block, $theme )
+	public function action_block_content_activity_sparkline( $block, $theme )
 	{
 		// Number of days to show; make this configurable
-		$days = 20;
-		
+		$n_days = $block->field_load( 'sparkline_days' );
+		// 
 		$i = 0;
 		$days = array();
-		while($i < $days) {
-			$days[] = time() - $i*86400;
+		while($i < $n_days) {
+			$days[] = HabariDateTime::date_create()->modify('-' . $i . ' days');
 			$i++;
 		}
 		$days= array_reverse($days);
 		
+		// Utils::debug( $days );
+		
+		$day_stats = array();		
 		foreach($days as $day) {
-			$posts = $theme->get_posts(array('year' => date('Y', $day), 'month' => date('m', $day), 'day' => date('d', $day), 'nolimit' => true));
+			// $posts = $theme->get_posts();
+			$posts = Posts::get( array('year' => $day->format('Y'), 'month' => $day->format('m'), 'day' => $day->format('d'), 'limit' => 5 ) );
 			$posts = count($posts);
-			$comments = Comments::get(array('year' => date('Y', $day), 'month' => date('m', $day), 'day' => date('d', $day), 'status' => Comment::status('approved'), 'nolimit' => true));
+			// $posts = 90;
+			$comments = Comments::get(array('year' => $day->format('Y'), 'month' => $day->format('m'), 'day' => $day->format('d'), 'status' => Comment::status('approved'), 'nolimit' => true));
 			$comments = count($comments);
+			// $comments = 5;
 			if($posts > 0) {
 				$posts = 5;
+			}
+			$day_stats[] = array(
+				'posts' => $posts,
+				'comments' => $comments,
+				'date' => $day
+			);
+		// 
 		}
 		
-		$block->recent_comments = $valid_comments;
+		$block->days = $day_stats;
+	}
+	
+	/**
+	 * Statistics
+	 *
+	 * Handle statistics block configuration
+	 *
+	 */
+	public function action_block_form_statistics( $form, $block )
+	{
+		// $form is already assigned to a FormUI instance
+		// $form->append( 'text', 'sparkline_days', $block, _t( 'Days' ) );
+		// No need to append a submit button as there is always a default form
+		// No need to return values from an action hook
+	}
+	
+	/**
+	 * Statistics
+	 *
+	 * Handle statistics block output
+	 *
+	 * @param Block $block The block instance to be configured
+	 * @param Theme $theme The active theme
+	 */
+	public function action_block_content_statistics( $block, $theme )
+	{		
+		$block->subscribers = self::get_stat('subscribers');
+		$block->posts = self::get_stat('posts');
+		$block->comments = self::get_stat('comments');
+		$block->tags = self::get_stat('tags');
 	}
 }
 ?>
