@@ -1,11 +1,23 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <pluggable type="plugin">
 	<name>Chicklet</name>
+	
 	<license url="http://www.apache.org/licenses/LICENSE-2.0.html">Apache Software License 2.0</license>
-	<author url="http://habariproject.org/">Habari Community</author>
+	
+	<author url="http://habariproject.org/">The Habari Community</author>
 	<author url="http://morgante.net/">Morgante Pell</author>
-	<version>0.2</version>
-	<url>http://morgante.net</url>
-	<description><![CDATA[Fetches the statistics for your Feedburner feed.]]></description>
-	<copyright>2009</copyright>
+	
+	<version>0.3</version>
+	<url>http://lab.morgante.net/chicklet</url>
+	
+	<description><![CDATA[Fetches various statistics, including FeedBurner subscriber count, and provides modules for displaying statistics.]]></description>
+	<copyright>2011</copyright>
+	
+	<help>
+		<value><![CDATA[<p>After activating this plugin, these block types will be available for you to use and configure in the 'Areas' of the Theme admin page:</p>
+		<ul>
+			<li>Recent Comments</li>
+		</ul>
+		<p>Each one has a template file you can copy to your theme and customize.</p>]]></value>
+	</help>
 </pluggable> 
