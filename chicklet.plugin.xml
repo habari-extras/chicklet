@@ -10,14 +10,15 @@
 	<version>0.3</version>
 	<url>http://lab.morgante.net/chicklet</url>
 	
-	<description><![CDATA[Fetches various statistics, including FeedBurner subscriber count, and provides modules for displaying statistics.]]></description>
+	<description><![CDATA[This plugin creates two new blocks which show off statistics about your blog, including information pulled from Feedburner.]]></description>
 	<copyright>2011</copyright>
 	
 	<help>
 		<value><![CDATA[<p>After activating this plugin, these block types will be available for you to use and configure in the 'Areas' of the Theme admin page:</p>
 		<ul>
-			<li>Recent Comments</li>
+			<li><strong>Activity Sparkline</strong> shows a <a href="http://en.wikipedia.org/wiki/Sparkline">Sparkline</a> of your recent blog activity, including posts and comments.</li>
+			<li><strong>Statistis</strong> shows statistics about your blog, including number of posts, comments, tags, and subscribers (if Feedburner is enabled).</li>
 		</ul>
-		<p>Each one has a template file you can copy to your theme and customize.</p>]]></value>
+		<p>To enable subscriber statistics, be sure to include your Feedburner addresses in the configuration settings.</p>]]></value>
 	</help>
 </pluggable> 
